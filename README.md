@@ -1,3 +1,4 @@
+
 # SmartLearn — Smart Learning & Quiz System
 
 ## 1. Project Overview
@@ -31,13 +32,24 @@ The main objective of SmartLearn is to develop a C-based educational application
 The specific objectives of SmartLearn are:
 
 1. **Student Profile Management:** To create and maintain student profiles containing student names and IDs.
+
 2. **Subject and Topic Selection:** To allow students to select subjects and specific topics for practice and quizzes.
+
 3. **Question Bank Management:** To organize multiple-choice questions (MCQs) with four options, correct answers, topics, and difficulty levels.
+
 4. **Practice Mode:** To provide an environment where students can answer questions and check whether their answers are correct.
+
 5. **Quiz Mode:** To conduct quizzes using randomly selected multiple-choice questions.
+
 6. **Difficulty Levels:** To categorize questions into Easy, Medium, and Hard levels.
+
 7. **Score Calculation:** To calculate quiz scores and percentages automatically.
+
 8. **Performance Analysis:** To analyze topic-wise performance and identify students' strong and weak areas.
+
 9. **Data Storage:** To use file handling to save and retrieve student information and performance records.
+
 10. **Question Randomization:** To vary the question order and make quizzes less predictable.
+
 11. **Programming Skills Development:** To apply fundamental C programming concepts, including functions, arrays, strings, structures, conditional statements, loops, randomization, and file handling, in a practical project.
+
