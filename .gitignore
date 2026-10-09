@@ -1,1 +1,9 @@
+
+# Compiled program
 smartlearn.exe
+
+# Runtime data files
+questions.txt
+results.txt
+students.txt
+topicstats.txt
