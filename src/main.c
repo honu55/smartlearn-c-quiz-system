@@ -1,6 +1,6 @@
 /*
  ==========================================================================
-   SMARTLEARN  -  Quiz and Practice System in C   (Beginner Version)
+   SMARTLEARN  -  Quiz and Practice System in C   (Beginner Version, FIXED)
  ==========================================================================
 
    WHAT THIS PROGRAM DOES
@@ -11,6 +11,20 @@
    5. Question order is RANDOM every time.
    6. The program shows which topics are STRONG and which are WEAK.
    7. Everything is saved in text files (file handling).
+
+   WHAT WAS FIXED IN THIS VERSION (Part 6 and Part 7)
+   - readFileLine now reads a long line completely, so one long line can
+     no longer "shift" all the following lines (this broke loading of
+     questions and students).
+   - readText now throws away extra typed characters, so they are not
+     read by the NEXT question by mistake.
+   - Spaces at the start/end of typed text are removed (trimSpaces), so
+     "101 " and "101" are the same student ID.
+   - A new question is saved by rewriting the whole file, so the file can
+     never get damaged.
+   - Questions are checked when loading (empty text, wrong numbers).
+   - All variables are declared at the top of each function (works in
+     every C compiler, old and new).
 
    C TOPICS USED IN THIS PROJECT
    - Variables and data types ..... int, double, char
@@ -33,6 +47,9 @@
         results.txt     -> quiz results         (9 lines for each quiz)
         topicstats.txt  -> topic-wise marks     (5 lines per topic per quiz)
    Every value is stored on its OWN LINE. This makes reading very easy.
+
+   NOTE: If you used an older version before, DELETE the old .txt files
+   once, so the program creates fresh files.
  ==========================================================================
 */
 
@@ -57,6 +74,7 @@
 #define MAX_LABEL   40      /* maximum length of a subject / topic name     */
 #define MAX_TOPICS  30      /* maximum number of different topics           */
 #define MAX_STATS   100     /* maximum records in performance analysis      */
+#define LINE_SIZE   600     /* size of the temporary buffer for one line    */
 
 #define Q_FILE "questions.txt"
 #define S_FILE "students.txt"
@@ -146,6 +164,36 @@ void removeNewline(char text[])
 }
 
 /*
+   trimSpaces
+   Removes the spaces at the START and at the END of a text.
+   Example: "  101 " becomes "101".
+   Without this, "101" and "101 " would look like two different students.
+*/
+void trimSpaces(char text[])
+{
+    int start = 0;
+    int end = strlen(text) - 1;
+    int i = 0;
+
+    while (text[start] == ' ' || text[start] == '\t')
+    {
+        start++;                            /* skip spaces at the start */
+    }
+    while (end >= start && (text[end] == ' ' || text[end] == '\t'))
+    {
+        end--;                              /* skip spaces at the end   */
+    }
+
+    while (start <= end)                    /* move the good part to the front */
+    {
+        text[i] = text[start];
+        i++;
+        start++;
+    }
+    text[i] = '\0';
+}
+
+/*
    readText
    Shows a message (prompt) and reads one line typed by the user.
    size = the maximum number of characters that the text variable can hold.
@@ -153,6 +201,7 @@ void removeNewline(char text[])
 void readText(char prompt[], char text[], int size)
 {
     char temp[300];
+    int c;
 
     printf("%s", prompt);
 
@@ -164,7 +213,20 @@ void readText(char prompt[], char text[], int size)
         exit(0);
     }
 
+    /* If there is no '\n' in temp, the user typed a VERY long line and the
+       rest is still waiting in the keyboard buffer. We throw it away, so
+       it is not read as the answer of the next question. */
+    if (strchr(temp, '\n') == NULL)
+    {
+        c = getchar();
+        while (c != '\n' && c != EOF)
+        {
+            c = getchar();
+        }
+    }
+
     removeNewline(temp);
+    trimSpaces(temp);
 
     /* copy at most (size-1) characters, so that we never overflow the array */
     strncpy(text, temp, size - 1);
@@ -244,24 +306,34 @@ void getCurrentDate(char text[])
    ========================================================================== */
 
 /*
-   readFileLine
+   readFileLine   (FIXED)
    Reads ONE line from a file into text (without the Enter at the end).
    Returns 1 if a line was read, and 0 if the file has ended.
+
+   FIX: the line is first read into a big temporary box (600 characters),
+   and then copied into "text" with a safe size. Before, a line longer than
+   "size" was cut in the middle and its second half was read as the NEXT
+   line. That shifted all the data and broke questions and students.
 */
 int readFileLine(FILE *f, char text[], int size)
 {
-    if (fgets(text, size, f) == NULL)
+    char temp[LINE_SIZE];
+
+    if (fgets(temp, LINE_SIZE, f) == NULL)
     {
         text[0] = '\0';                     /* make the text empty */
         return 0;
     }
-    removeNewline(text);
+    removeNewline(temp);
+
+    strncpy(text, temp, size - 1);          /* safe copy */
+    text[size - 1] = '\0';
     return 1;
 }
 
 
 /* ==========================================================================
-   PART 6 : QUESTION BANK  (create, save, load, add)
+   PART 6 : QUESTION BANK  (create, save, load, add)   -- FIXED
    ========================================================================== */
 
 /* Writes ONE question to an open file. Each value goes on its own line. */
@@ -381,18 +453,20 @@ void loadDefaultQuestions()
 }
 
 /*
-   loadQuestions
+   loadQuestions   (FIXED)
    Reads the question bank from questions.txt into the questions[] array.
    If the file does not exist (first run), the sample questions are created.
+   A question is kept only if it is complete and its numbers are valid.
 */
 void loadQuestions()
 {
-    FILE *f = fopen(Q_FILE, "r");
+    FILE *f;
     char line[300];
     struct Question q;
-    int i;
+    int i, valid;
 
     qCount = 0;
+    f = fopen(Q_FILE, "r");
 
     if (f != NULL)
     {
@@ -418,9 +492,22 @@ void loadQuestions()
             readFileLine(f, line, 300);
             q.correct = atoi(line);
 
-            /* keep the question only if the numbers are valid */
-            if (q.difficulty >= 1 && q.difficulty <= 3 &&
-                q.correct >= 1 && q.correct <= 4)
+            /* check that the question is complete and valid */
+            valid = 1;
+            if (strlen(q.subject) == 0 || strlen(q.topic) == 0 || strlen(q.text) == 0)
+            {
+                valid = 0;
+            }
+            if (q.difficulty < 1 || q.difficulty > 3)
+            {
+                valid = 0;
+            }
+            if (q.correct < 1 || q.correct > 4)
+            {
+                valid = 0;
+            }
+
+            if (valid == 1)
             {
                 questions[qCount] = q;              /* copy whole structure */
                 qCount++;
@@ -436,7 +523,7 @@ void loadQuestions()
     }
 }
 
-/* Menu option 5: the user types a new question and it is saved. */
+/* Menu option 5: the user types a new question and it is saved.  (FIXED) */
 void addQuestion()
 {
     struct Question q;
@@ -473,6 +560,11 @@ void addQuestion()
     {
         sprintf(prompt, "Option %c: ", 'A' + i);    /* 'A'+0 = A, 'A'+1 = B ... */
         readText(prompt, q.option[i], MAX_OPT);
+        if (strlen(q.option[i]) == 0)
+        {
+            printf("Option cannot be empty. Question not added.\n");
+            return;
+        }
     }
 
     q.correct = readNumber("Correct option (1=A, 2=B, 3=C, 4=D): ", 1, 4);
@@ -480,19 +572,15 @@ void addQuestion()
     questions[qCount] = q;                  /* add to the array          */
     qCount++;
 
-    /* Append ("a" mode) the new question at the end of the file */
-    FILE *f = fopen(Q_FILE, "a");
-    if (f != NULL)
-    {
-        saveOneQuestion(f, q);
-        fclose(f);
-    }
+    /* FIX: save the WHOLE bank again. This is safer than appending,
+       because the file can never end up half-written or joined wrongly. */
+    saveAllQuestions();
     printf("Question added successfully. Total questions: %d\n", qCount);
 }
 
 
 /* ==========================================================================
-   PART 7 : STUDENT PROFILE  (login / register)
+   PART 7 : STUDENT PROFILE  (login / register)   -- FIXED
    ========================================================================== */
 
 /*
@@ -537,7 +625,7 @@ void loginOrRegister()
 
     while (1)
     {
-        readText("Enter your Student ID: ", id, MAX_ID);
+        readText("Enter your Student ID: ", id, MAX_ID);   /* spaces are trimmed */
         if (strlen(id) > 0)
         {
             break;                          /* leave the loop */
@@ -565,8 +653,12 @@ void loginOrRegister()
     }
     strcpy(current.id, id);
 
-    f = fopen(S_FILE, "a");
-    if (f != NULL)
+    f = fopen(S_FILE, "a");                 /* "a" = add at the end of the file */
+    if (f == NULL)
+    {
+        printf("Warning: could not save the profile (file error).\n");
+    }
+    else
     {
         fprintf(f, "%s\n", current.id);
         fprintf(f, "%s\n", current.name);
@@ -784,7 +876,7 @@ int askQuestion(struct Question q, int number, int total, int showFeedback, int 
         else
             readText("Your answer (A-D, S=skip): ", input, 50);
 
-        letter = toupper(input[0]);         /* 'a' becomes 'A' */
+        letter = toupper((unsigned char)input[0]);   /* 'a' becomes 'A' */
 
         /* the input must be exactly ONE character */
         if (strlen(input) == 1 && letter >= 'A' && letter <= 'D')
