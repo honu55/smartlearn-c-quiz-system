@@ -1,7 +1,9 @@
 /*
  ==========================================================================
-   SMARTLEARN  -  Quiz and Practice System in C 
+   SMARTLEARN  -  Quiz and Practice System in C   
  ==========================================================================
+
+   To run this code the command is ./smartlearn.exe
 
    WHAT THIS PROGRAM DOES
    1. Student logs in with an ID (new students are registered).
