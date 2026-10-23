@@ -1,6 +1,6 @@
 /*
  ==========================================================================
-   SMARTLEARN  -  Quiz and Practice System in C   (Beginner Version, FIXED)
+   SMARTLEARN  -  Quiz and Practice System in C 
  ==========================================================================
 
    WHAT THIS PROGRAM DOES

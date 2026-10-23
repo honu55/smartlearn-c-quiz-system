@@ -1,0 +1,28 @@
+# SmartLearn — Project Requirements
+
+## Programming Language
+- C
+
+## Compiler
+- GCC (MinGW-w64 on Windows)
+
+## Required Libraries
+- stdio.h
+- stdlib.h
+- string.h
+- time.h
+- ctype.h
+
+## Development Tools
+- Visual Studio Code
+- Git
+- GitHub
+
+## External Dependencies
+- None
+
+## Build Command
+gcc src/main.c -o smartlearn.exe
+
+## Run on Windows
+smartlearn.exe
