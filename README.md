@@ -3,7 +3,7 @@
 
 ## 1. Project Overview
 
-**SmartLearn** is a C-based, console-oriented educational application designed to help students practice questions, take quizzes, and evaluate their academic performance. Students can select subjects and topics, answer multiple-choice questions (MCQs), and practice at three difficulty levels: Easy, Medium, and Hard.
+**SmartLearn** is a C-based, console-oriented educational application designed to help students practice questions, take quizzes, and evaluate their academic performance. Students can select subjects and topics, answer multiple-choice questions (MCQs), and practice at three difficulty levels: Easy, Medium, Hard and Mixed.
 
 The system automatically calculates scores and percentages, analyzes topic-wise performance to identify strengths and weaknesses, and uses random question selection to provide variation between quizzes. File handling will be used to store student information and results for future reference.
 
