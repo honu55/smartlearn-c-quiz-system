@@ -10,12 +10,12 @@ This document outlines the test cases used to verify the functionality, edge han
 * **Input Steps:**
   1. Launch the executable (`./smartlearn`).
   2. When prompted for Student ID, enter: `  STU001  ` (with surrounding spaces).
-  3. When prompted for Student Name, enter: `John Doe`.
+  3. When prompted for Student Name, enter: `Ragib Sindid Priam`.
 * **Expected Result:**
   - System reports creating `questions.txt` with sample default questions.
   - Spaces in `  STU001  ` are trimmed to save ID as `STU001`.
   - Profile is saved to `students.txt`.
-  - Main menu displays welcome message for "John Doe".
+  - Main menu displays welcome message for "Ragib Sindid Priam".
 
 ---
 
