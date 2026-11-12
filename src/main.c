@@ -57,6 +57,7 @@
 
 #include <stdio.h>    /* printf, fgets, fopen, fprintf ...            */
 #include <stdlib.h>   /* rand, srand, atoi, atof, exit                */
+#include <errno.h>    /* errno, ERANGE                              */
 #include <string.h>   /* strcpy, strcmp, strlen, strncpy              */
 #include <time.h>     /* time (for random seed and for the date)      */
 #include <ctype.h>    /* toupper (turn 'a' into 'A')                  */
@@ -243,16 +244,19 @@ void readText(char prompt[], char text[], int size)
 int readNumber(char prompt[], int low, int high)
 {
     char input[50];
-    int number;
+    char *end;
+    long number;
 
     while (1)                               /* repeat until we return */
     {
         readText(prompt, input, 50);
-        number = atoi(input);               /* text -> integer ("abc" gives 0) */
+        errno = 0;
+        number = strtol(input, &end, 10);   /* parse the entire input */
 
-        if (number >= low && number <= high)
+        if (end != input && *end == '\0' && errno != ERANGE &&
+            number >= low && number <= high)
         {
-            return number;                  /* valid number: give it back */
+            return (int)number;             /* valid number: give it back */
         }
         printf("  Please enter a number between %d and %d.\n", low, high);
     }
